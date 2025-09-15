@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rowing Erg League Table</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #363f5e, #2a3049);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .logo {
+      width: 180px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      color: #a27bc1;
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 800px;
+      background: #2a3049;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0px 6px 25px rgba(0,0,0,0.5);
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.85rem 1rem;
+      text-align: center;
+    }
+
+    th {
+      background: #a27bc1;
+      color: #fff;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    tr:nth-child(even) {
+      background: #3f4664;
+    }
+
+    tr:hover {
+      background: #50577a;
+    }
+
+    .up {
+      color: #4caf50; /* green */
+      font-weight: bold;
+    }
+
+    .same {
+      color: #ffeb3b; /* yellow */
+      font-weight: bold;
+    }
+
+    .down {
+      color: #f44336; /* red */
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <!-- Logo -->
+  <img src="e979e6c8-a6aa-4bcb-8f50-d62c3b8a16af.png" alt="Club Logo" class="logo"/>
+
+  <h1>Rowing Erg League Table</h1>
+
+  <table id="leagueTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Last Erg Rank</th>
+        <th>New Erg Rank</th>
+        <th>Difference</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    // Replace with your published Google Sheets CSV URL
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/XXXXX/pub?output=csv";
+
+    async function fetchData() {
+      try {
+        const response = await fetch(sheetUrl);
+        const data = await response.text();
+        const rows = data.split("\n").slice(1); // skip header row
+
+        let rowers = [];
+
+        rows.forEach(row => {
+          const [name, lastRank, newRank] = row.split(",");
+          if (!name) return;
+
+          const r = {
+            name: name.trim(),
+            lastRank: parseInt(lastRank),
+            newRank: parseInt(newRank)
+          };
+          rowers.push(r);
+        });
+
+        // sort by current rank
+        rowers.sort((a, b) => a.newRank - b.newRank);
+        renderTable(rowers);
+
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
+    }
+
+    function renderTable(rowers) {
+      const tableBody = document.querySelector("#leagueTable tbody");
+      tableBody.innerHTML = "";
+
+      rowers.forEach(r => {
+        const diff = r.lastRank - r.newRank;
+        let diffText, diffClass;
+
+        if (diff > 0) {
+          diffText = `⬆️ +${diff}`;
+          diffClass = "up";
+        } else if (diff < 0) {
+          diffText = `⬇️ ${diff}`;
+          diffClass = "down";
+        } else {
+          diffText = `➡️ 0`;
+          diffClass = "same";
+        }
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${r.name}</td>
+          <td>${r.lastRank}</td>
+          <td>${r.newRank}</td>
+          <td class="${diffClass}">${diffText}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    fetchData();
+  </script>
+</body>
+</html>
